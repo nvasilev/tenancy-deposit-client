@@ -1,0 +1,36 @@
+nvasilev-hmrc:~/courses/blockchain/16-review-of-week-3/homework/exercise-01/DocumentRegistry$ ganache-cli --secure --unlock "0" --unlock "1" --unlock "2" --unlock "3" --unlock "4" --unlock "5" --unlock "6" --unlock "7" --unlock "8" --unlock "9"
+Ganache CLI v6.0.3 (ganache-core: 2.0.2)
+eth_getBlockByNumber
+
+Available Accounts
+==================
+(0) 0x3f416c89f86784b4698ce01c367177c2007f793d
+(1) 0xcc937bde323b34cdc0a196e33123ed73961861f6
+(2) 0x16359aa219949b783c68b1ef812977e63c8402e2
+(3) 0x586ae2120be30baa4ace440a63232e38088fe916
+(4) 0xe26a439302468a2fbaa9017ee0d35da1f7d35ac5
+(5) 0x19f2c0ea0ed75ac5c9e86bed8ac2297429350b0a
+(6) 0x721104d46c678cf849690169b002a09cfeed5e0c
+(7) 0xe655b51d4280d4b1d5e29642bbb1a0f06e1cd448
+(8) 0xb0d1cf20d2a3f75d35f9e254b2f3debbc90de3d9
+(9) 0x5445733b8dccac94c9e18f3914286f33a08b5bf5
+
+Private Keys
+==================
+(0) 5eeebfcf523d877aec689dcaf85f407865e1ac0c11c4c1ad52b5d38e2b7b1727
+(1) bcdd3455ad5c3388250c89586c3076c6807bbdd2511b6b6ab51bcfdf092912dd
+(2) 34ce8c2dd00d0aecc123072388dc578e6902889ede2a2c0c8ff30965432ec850
+(3) 7adb25fbc53e59e8ed926de1a7130aa58553317e9e7b233cd026fd33ed01d95c
+(4) 329e0561dbc9977fa4e87b53c4375a37edffb3c5bd37bd9d576c13c2066056b5
+(5) c2a228fc56de5c71db3d6816e65ba0721e44810d66803b939c36c03ff6262c2c
+(6) c08c2bf214430303e8bf299ad0a7cd8e0547bd22b373920d4dbff25eebdc536c
+(7) 1227564b5a8b638095f2efbd13a15483394f5332bba5622dccf99f3f50c05590
+(8) a4eaeb89371660da828a6cdfcfedc2c1ff00145c69382fdbbceed2e9878ad0e0
+(9) 04437f8878ace5e78451f443844dbb83324de238a822fd61d6f4515c616252a8
+
+HD Wallet
+==================
+Mnemonic:      episode coach enlist knee walk side ocean sort canvas receive staff air
+Base HD Path:  m/44'/60'/0'/0/{account_index}
+
+Listening on localhost:8545
