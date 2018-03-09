@@ -1,191 +1,184 @@
 pragma solidity ^0.4.18;
 
-// import "dev.oraclize.it/api.sol";
-// import "github.com/oraclize/ethereum-api/oraclizeAPI.sol";
-// import "./oraclizeAPI.sol";
+contract TenancyDeposit {
 
-contract TenancyContract { // is usingOraclize {
+    enum ContractStatus {UNSIGNED, DEPOSIT_REQUIRED, ACTIVE, COMPLETE, DEDUCTION_CLAIMING, DEDUCTION_AGREED, DISPUTE, DISPUTE_RESOLVED, DONE}
 
-    enum Status {UNSIGNED, DEPOSIT_REQUIRED, ACTIVE, COMPLETE,
-        OWNER_DEDUCTION_REQUESTED, TENANT_DEDUCTION_REQUESTED,
-        DEDUCTION_DISPUTE, DISPUTE_RESOLVED, TERMINATED}
-    Status status = Status.UNSIGNED;
+    ContractStatus status = ContractStatus.UNSIGNED;
 
     uint constant MAX_VALUE = ~uint256(0);
 
-    struct Actor {
-        address addr;
-        uint deductionClaim;
-    }
-
-    struct Deposit {
-        uint expectedValue;
-        uint paidValue;
-    }
-
-    struct TTL {
-        uint creationTimestamp;
-        uint value;
-    }
-
     modifier landlordOnly() {
-        require(landlord.addr == msg.sender);
+        require(landlord == msg.sender);
         _;
     }
 
     modifier tenantOnly() {
-        require(tenant.addr == msg.sender);
+        require(tenant == msg.sender);
         _;
     }
 
     modifier arbiterOnly() {
-        require(arbiter.addr == msg.sender);
+        require(arbiter == msg.sender);
         _;
     }
 
-    modifier withStatus(Status _status) {
+    modifier withContractStatus(ContractStatus _status) {
         require(status == _status);
         _;
     }
 
-    Actor landlord;
-    Actor tenant;
-    Actor arbiter;
-    Deposit deposit;
-    TTL ttl;
-    // uint pricePerPack = 1 finney;
+    address contractAddress;
+    address landlord;
+    bool landlordDeductionClaimed;
+    bool landlordDeductionPaid;
+    uint landlordDeductionClaim;
+    address tenant;
+    bool tenantDeductionClaimed;
+    bool tenantDepositReimbursed;
+    uint tenantDeductionClaim;
+    address arbiter;
+    uint arbiterDeductionClaim;
+    uint expectedDeposit;
+    uint paidDeposit;
+    uint creationDate;
 
-    function TenancyContract(address tenantAddress, address arbiterAddress, uint depositValue, uint _ttl)
-    public
-    payable
+    function TenancyDeposit(address _tenant, address _arbiter, uint _expectedDeposit) public payable
     {
-        require(tenantAddress != msg.sender);
-        require(arbiterAddress != msg.sender);
-        require(tenantAddress != arbiterAddress);
-        require(depositValue > 0 ether);
-        require(status == Status.UNSIGNED);
+        require(_tenant != msg.sender);
+        require(_arbiter != msg.sender);
+        require(_arbiter != _tenant);
+        require(_expectedDeposit > 0 ether);
+        require(status == ContractStatus.UNSIGNED);
 
-        landlord = Actor({addr: msg.sender, deductionClaim: MAX_VALUE});
-        tenant = Actor({addr: tenantAddress, deductionClaim: MAX_VALUE});
-        arbiter = Actor({addr: arbiterAddress, deductionClaim: MAX_VALUE});
-        deposit = Deposit({expectedValue: depositValue, paidValue: 0 ether});
-        ttl = TTL({creationTimestamp: block.timestamp, value: _ttl}); // * 60 in secs
-        status = Status.DEPOSIT_REQUIRED;
-        // scheduleContractTermination();
+        contractAddress = this;
+
+        landlord = msg.sender;
+        landlordDeductionClaimed = false;
+        landlordDeductionClaim = 0;
+
+        tenant = _tenant;
+        tenantDeductionClaimed = false;
+        tenantDeductionClaim = 0;
+
+        arbiter = _arbiter;
+        arbiterDeductionClaim = 0;
+
+        expectedDeposit = _expectedDeposit;
+        paidDeposit = 0 ether;
+
+        creationDate = block.timestamp;
+
+        status = ContractStatus.DEPOSIT_REQUIRED;
     }
 
     function signContract() public payable
     tenantOnly
-    withStatus(Status.DEPOSIT_REQUIRED)
+    withContractStatus(ContractStatus.DEPOSIT_REQUIRED)
     {
-        require(deposit.expectedValue <= msg.value);
-        deposit.paidValue = msg.value;
-        status = Status.ACTIVE;
+        require(expectedDeposit <= msg.value);
+        paidDeposit = msg.value;
+        status = ContractStatus.ACTIVE;
     }
 
-    // DELETE ME
-    function expireTenancyContract() public payable
-    landlordOnly
-    withStatus(Status.ACTIVE)
-    {
-        status = Status.COMPLETE;
-        // TODO add events
-
-        // assert(this.balance == ...)
-        // address.transfer(msg.value) (takes the value from contract's amount and sends it to address)
-        // owner.transfer(this.balance);
-        // contractAddress.withdrawBalance.sendTransaction()
-
-        // selfdestruct(landlord.addr); // perhaps not necessary
+    function terminateContract() public payable withContractStatus(ContractStatus.ACTIVE) {
+        require(tenant == msg.sender || landlord == msg.sender);
+        status = ContractStatus.COMPLETE;
     }
 
-    // TODO investigate potential collision issues
-    function claimOwnerDeduction(uint _landlordDeductionClaim) public landlordOnly {
-        require(status == Status.COMPLETE || status == Status.TENANT_DEDUCTION_REQUESTED);
-        require(landlord.deductionClaim == MAX_VALUE);
-        require(_landlordDeductionClaim >= 0);
-        require(_landlordDeductionClaim <= deposit.paidValue);
+    function tenantClaimDeduction(uint _tenantDeductionClaim) public tenantOnly {
+        require(status == ContractStatus.COMPLETE || status == ContractStatus.DEDUCTION_CLAIMING);
+        require(!tenantDeductionClaimed);
+        require(_tenantDeductionClaim <= paidDeposit);
 
-        landlord.deductionClaim = _landlordDeductionClaim;
+        tenantDeductionClaim = _tenantDeductionClaim;
+        tenantDeductionClaimed = true;
 
-        if (status == Status.COMPLETE) {
-            status = Status.OWNER_DEDUCTION_REQUESTED;
-        }
-        else if (status == Status.TENANT_DEDUCTION_REQUESTED) {
-            if (landlord.deductionClaim == tenant.deductionClaim) {
-                status = Status.TERMINATED;
+        if (landlordDeductionClaimed) {
+            if (tenantDeductionClaim == landlordDeductionClaim) {
+                status = ContractStatus.DEDUCTION_AGREED;
             } else {
-                status = Status.DEDUCTION_DISPUTE;
-                // TODO notify arbiter?
+                status = ContractStatus.DISPUTE;
             }
+        } else {
+            status = ContractStatus.DEDUCTION_CLAIMING;
         }
     }
 
-    // TODO investigate potential collision issues
-    function claimTenantDeduction(uint _tenantDeductionClaim) public payable tenantOnly {
-        require(status == Status.OWNER_DEDUCTION_REQUESTED || status == Status.COMPLETE);
-        require(status == Status.COMPLETE);
-        require(tenant.deductionClaim == MAX_VALUE);
-        require(_tenantDeductionClaim >= 0);
-        require(_tenantDeductionClaim <= deposit.paidValue);
+    function landlordClaimDeduction(uint _landlordDeductionClaim) public landlordOnly {
+        require(status == ContractStatus.COMPLETE || status == ContractStatus.DEDUCTION_CLAIMING);
+        require(!landlordDeductionClaimed);
+        require(_landlordDeductionClaim <= paidDeposit);
 
-        tenant.deductionClaim = _tenantDeductionClaim;
+        landlordDeductionClaim = _landlordDeductionClaim;
+        landlordDeductionClaimed = true;
 
-        if (status == Status.COMPLETE) {
-            status = Status.TENANT_DEDUCTION_REQUESTED;
-        }
-        else if (status == Status.OWNER_DEDUCTION_REQUESTED) {
-            if (landlord.deductionClaim == tenant.deductionClaim) {
-                status = Status.TERMINATED;
+        if (tenantDeductionClaimed) {
+            if (tenantDeductionClaim == landlordDeductionClaim) {
+                status = ContractStatus.DEDUCTION_AGREED;
             } else {
-                status = Status.DEDUCTION_DISPUTE;
-                // TODO notify arbiter?
+                status = ContractStatus.DISPUTE;
             }
+        } else {
+            status = ContractStatus.DEDUCTION_CLAIMING;
         }
     }
 
-    function resolveDispute(uint _arbiterDeductionVerdict) public arbiterOnly {
-        require(status == Status.DEDUCTION_DISPUTE);
-        require(arbiter.deductionClaim != MAX_VALUE);
-        require(_arbiterDeductionVerdict >= 0);
-        require(_arbiterDeductionVerdict <= deposit.paidValue);
+    function withdrawLandlordClaim() public payable landlordOnly {
+        require(status == ContractStatus.DEDUCTION_AGREED || status == ContractStatus.DISPUTE_RESOLVED);
+        require(!landlordDeductionPaid);
 
-        arbiter.deductionClaim = _arbiterDeductionVerdict;
-        status = Status.DISPUTE_RESOLVED;
+        // in case of a dispute arbiter's deduction claim is considered
+        uint deduction = landlordDeductionClaim;
+        if (status == ContractStatus.DISPUTE_RESOLVED) {
+            deduction = arbiterDeductionClaim;
+        }
+
+        msg.sender.transfer(deduction);
+        landlordDeductionPaid = true;
+
+        if (tenantDepositReimbursed) {
+            status = ContractStatus.DONE;
+        }
     }
 
-    function withdrawDeduction() public landlordOnly payable {
-        require(status == Status.TERMINATED || status == Status.DISPUTE_RESOLVED);
-        // require();
+    function withdrawTenantDeposit() public payable tenantOnly {
+        require(status == ContractStatus.DEDUCTION_AGREED || status == ContractStatus.DISPUTE_RESOLVED);
+        require(!tenantDepositReimbursed);
 
-        // mapping needed owner => deduction
+        // in case of a dispute arbiter's deduction claim is considered
+        uint deduction = landlordDeductionClaim;
+        if (status == ContractStatus.DISPUTE_RESOLVED) {
+            deduction = arbiterDeductionClaim;
+        }
+
+        msg.sender.transfer(paidDeposit - deduction);
+        tenantDepositReimbursed = true;
+
+        if (landlordDeductionPaid) {
+            status = ContractStatus.DONE;
+        }
     }
 
+    function resolveDispute(uint claim) public payable arbiterOnly withContractStatus(ContractStatus.DISPUTE) {
+        require(tenantDeductionClaim != landlordDeductionClaim);
+        require(claim <= paidDeposit);
 
+        arbiterDeductionClaim = claim;
+        status = ContractStatus.DISPUTE_RESOLVED;
+        // TODO collect fee
+    }
 
     function getExpectedDeposit() view public returns (uint) {
-        return deposit.expectedValue;
+        return expectedDeposit;
     }
 
     function getPaidDeposit() view public returns (uint) {
-        return deposit.paidValue;
+        return contractAddress.balance;
     }
 
-    function getStatus() view public returns (Status) {
+    function getContractStatus() view public returns (ContractStatus) {
         return status;
     }
-
-
-
-    // function scheduleContractTermination() {
-    //   oraclize_query(lengthInSeconds, "URL", "");
-    // }
-
-    // function __callback(bytes32 myid, string result) {
-    //     require(msg.sender == oraclize_cbAddress());
-
-    //     // status = Status.TENANCY_COMPLETE;
-    //      expireTenancyContract();
-    // }
 
 }
