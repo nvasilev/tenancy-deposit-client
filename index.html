@@ -14,10 +14,12 @@
 <body>
 <header id="menu">
     <a href="#" id="linkHome">Home</a>
+    <!--<a href="#" id="linkContractAdd">Contract Add</a>-->
+    <a href="#" id="linkContractDetails">Contract Details</a>
     <a href="#" id="linkLandlord">Landlord</a>
     <a href="#" id="linkTenant">Tenant</a>
     <a href="#" id="linkArbiter">Arbiter</a>
-    <a href="#" id="linkSubmitDocument">Submit Document</a>
+    <a href="#" id="linkSubmitDocument">Define Document</a>
     <a href="#" id="linkVerifyDocument">Verify Document</a>
 </header>
 
@@ -34,13 +36,20 @@
 
     <section id="viewHome">
         <h1>Tenancy Deposit</h1>
-        Welcome to the "Tenancy Deposit" DApp. This distributed app runs on the Etherereum blockchain network and
-        holds a tenancy deposit as Solidity smart contract.
+        <p>Welcome to the "Tenancy Deposit" DApp.</p>
+        <p>This distributed app runs on the Etherereum blockchain network and
+            holds a tenancy deposit as Solidity smart contract.</p>
         <ul>
-            <li>Tenancy Deposit keeps a tenant's deposit in an account separate of landlord's one during the renting
-                period and returns it after the tenancy contract terminates.<br/>
-                In case of a dispute between the two
-                parties over the size of the deduction the landlord claims, an arbiter resolves it.
+            <li><strong>Tenancy Deposit Solidity Contract</strong>:
+                <ul>
+                    <li>keeps tenant's deposit separately from landlord's one during the renting
+                        period</li>
+                    <li>if the tenant caused any damages to the property during the renting
+                        period, the Solidity contract deducts the compensation for them from the initially
+                        paid deposit and transfers it to landlord's account (on landlord's request for withdrawal)</li>
+                    <li>reimburses the tenant with the deposit (or the remaining deposit
+                        after deduction for damages) after the end of the tenancy contract</li>
+                </ul>
             </li>
             <li><strong>Landlord</strong> could:
                 <ul>
@@ -54,7 +63,7 @@
             <li><strong>Tenant</strong> could:
                 <ul>
                     <li>sign a tenancy contract thus paying the deposit amount</li>
-                    <li>submit a deduction claim (in order to agree with or object to landlord's deduction claim</li>
+                    <li>submit a deduction claim (in order to agree with or object to landlord's deduction claim)</li>
                     <li>withdraw the paid deposit or eventually (deposit - deduction), which deduction is either agreed
                         with the landlord or the arbiter resolves a dispute in favour of the landlord and rules given
                         deduction amount
@@ -67,92 +76,149 @@
                 </ul>
             </li>
         </ul>
-        Please provide tenancy agreement addresses:<br/>
-        <label for="landlordAddress">Landlord Address: </label>
-        <input type="text" name="landlordAddress" id="landlordAddress"><br>
-        <label for="tenantAddress">Tenant Address: </label>
-        <input type="text" name="tenantAddress" id="tenantAddress"><br>
-        <label for="arbiterAddress">Arbiter Address: </label>
-        <input type="text" name="arbiterAddress" id="arbiterAddress"><br>
-        <input type="button" id="documentSetupAddresses" value="Setup"/>
-        <input type="button" id="documentCleanUp" value="Cleanup"/>
+    </section>
+
+    <section id="viewContractAdd">
+        <h1>Contract Add</h1>
+        Coming soon...
+    </section>
+
+    <section id="viewContractDetails">
+        <h1>Tenancy Agreement</h1>
+        <!-- buttons -->
+        <label for="contract-landlordAddress">Landlord Address: </label>
+        <input type="text" name="contract-landlordAddress" id="contract-landlordAddress" class="contractAddress"  size="40"><br>
+        <label for="contract-tenantAddress">Tenant Address: </label>
+        <input type="text" name="contract-tenantAddress" id="contract-tenantAddress" size="40"><br>
+        <label for="contract-arbiterAddress">Arbiter Address: </label>
+        <input type="text" name="contract-arbiterAddress" id="contract-arbiterAddress" size="40"><br>
+        <label for="contract-deposit">Deposit: </label>
+        <input type="number" name="contract-deposit" id="contract-deposit" size="20"><br>
+        <label for="contract-deduction">Deduction: </label>
+        <input type="number" name="contract-deduction" id="contract-deduction" size="20" disabled><br>
+        <label for="contract-status">Status: </label>
+        <input type="text" name="contract-status" id="contract-status" value="N/A" size="20" disabled><br>
+        <label for="contract-status">Ropsten Test Net</label>
+        <input type="checkbox" name="ropstenTestNet" id="ropstenTestNet" value="ropstenTestNet"><br>
+        <!-- buttons -->
+        <input type="button" id="documentCreateTenancyDepositContract" value="Create Contract"/>
+        <input type="button" id="documentResetTenancyDepositContract" value="Reset" disabled/>
+        <p>
+            <em>Please note that only <b>Landlords</b> could create tenancy agreements.</em>
+        </p>
+        <p>
+            <strong>Tenancy Deposit Solidity Contract</strong>:
+            <ul>
+                <li>keeps tenant's deposit separately from landlord's one during the renting
+                    period</li>
+                <li>if the tenant caused any damages to the property during the renting
+                    period, the Solidity contract deducts the compensation for them from the initially
+                    paid deposit and transfers it to landlord's account (on landlord's request for withdrawal)</li>
+                <li>reimburses the tenant with the deposit (or the remaining deposit
+                    after deduction for damages) after the end of the tenancy contract</li>
+            </ul>
+        </p>
     </section>
 
     <section id="viewLandlord">
         <h1>Landlord</h1>
-        <p><strong>Landlord</strong> could:
-        <ul>
-            <li>create a new tenancy deposit</li>
-            <li>submit a deduction claim</li>
-            <li>withdraw a deduction, which is either approved by the tenant or ruled by the arbiter in favour
-                of the landlord after resolving a dispute
-            </li>
-        </ul>
+        <strong>Tenancy Agreement</strong><br>
+        <!-- fields -->
+        <label for="landlord-landlordAddress">Landlord Address: </label>
+        <input type="text" name="landlord-landlordAddress" id="landlord-landlordAddress" size="40" disabled><br>
+        <label for="landlord-tenantAddress">Tenant Address: </label>
+        <input type="text" name="landlord-tenantAddress" id="landlord-tenantAddress" size="40" disabled><br>
+        <label for="landlord-arbiterAddress">Arbiter Address: </label>
+        <input type="text" name="landlord-arbiterAddress" id="landlord-arbiterAddress" size="40" disabled><br>
+        <label for="landlord-deposit">Deposit: </label>
+        <input type="number" name="landlord-deposit" id="landlord-deposit" size="20" disabled><br>
+        <label for="landlord-deduction">Deduction: </label>
+        <input type="number" name="landlord-deduction" id="landlord-deduction" size="20" disabled><br>
+        <label for="landlord-status">Status: </label>
+        <input type="text" name="landlord-status" id="landlord-status" value="N/A" size="20" disabled><br>
+        <!-- buttons -->
+        <input type="submit" id="documentLandlordTerminateContract" value="Terminate Contract" disabled/>
+        <input type="submit" id="documentLandlordClaimDeduction" value="Claim Deduction" disabled/>
+        <input type="submit" id="documentLandlordWithdrawDeduction" value="Withdraw Deduction" disabled/>
+        <p>
+            <strong>Landlord</strong> could:
+            <ul>
+                <li>create a new tenancy contract</li>
+                <li>submit a deduction claim</li>
+                <li>withdraw a deduction, which is either approved by the tenant or ruled by the arbiter in favour
+                    of the landlord after resolving a dispute
+                </li>
+            </ul>
         </p>
-        <strong>Tenancy Agreement</strong><br/>
-        <label for="lLandlordAddress">Landlord Address: </label>
-        <input type="text" name="lLandlordAddress" id="lLandlordAddress" disabled><br>
-        <label for="lTenantAddress">Tenant Address: </label>
-        <input type="text" name="lTenantAddress" id="lTenantAddress" disabled><br>
-        <label for="lArbiterAddress">Arbiter Address: </label>
-        <input type="text" name="lArbiterAddress" id="lArbiterAddress" disabled><br>
-        <label for="lContractLength">Contract Length: </label>
-        <input type="text" name="lContractLength" id="lContractLength"><br>
-        <input type="submit" id="documentCreateContract" value="Create Contract"/><br/>
-        <!--<input type="button" id="documentClaimLandlordDeduction" value="Submit"/><br/>-->
-        <!--<input type="button" id="documentWithdrawDeduction" value="Submit"/>-->
     </section>
 
     <section id="viewTenant">
         <h1>Tenant</h1>
-        <p><strong>Tenant</strong> could:
-        <ul>
-            <li>sign a tenancy contract thus paying the deposit amount</li>
-            <li>submit a deduction claim (in order to agree with or object to landlord's deduction claim</li>
-            <li>withdraw the paid deposit or eventually (deposit - deduction), which deduction is either agreed
-                with the landlord or the arbiter resolves a dispute in favour of the landlord and rules given
-                deduction amount
-            </li>
-        </ul>
+        <strong>Tenancy Agreement</strong><br>
+        <!-- fields -->
+        <label for="tenant-landlordAddress">Landlord Address: </label>
+        <input type="text" name="tenant-landlordAddress" id="tenant-landlordAddress" size="40" disabled><br>
+        <label for="tenant-tenantAddress">Tenant Address: </label>
+        <input type="text" name="tenant-tenantAddress" id="tenant-tenantAddress" size="40" disabled><br>
+        <label for="tenant-arbiterAddress">Arbiter Address: </label>
+        <input type="text" name="tenant-arbiterAddress" id="tenant-arbiterAddress" size="40" disabled><br>
+        <label for="tenant-deposit">Deposit: </label>
+        <input type="number" name="tenant-deposit" id="tenant-deposit" size="20" disabled><br>
+        <label for="tenant-deduction">Deduction: </label>
+        <input type="number" name="tenant-deduction" id="tenant-deduction" size="20" disabled><br>
+        <label for="tenant-status">Status: </label>
+        <input type="text" name="tenant-status" id="tenant-status" value="N/A" size="20" disabled><br>
+        <!-- buttons -->
+        <input type="submit" id="documentTenantPayDeposit" value="Pay Deposit" disabled/>
+        <input type="submit" id="documentTenantTerminateContract" value="Terminate Contract" disabled/>
+        <input type="submit" id="documentTenantClaimDeduction" value="Claim Deduction" disabled/>
+        <input type="submit" id="documentTenantWithdrawDeposit" value="Withdraw Deposit" disabled/>
+        <p>
+            <strong>Tenant</strong> could:
+            <ul>
+                <li>sign a tenancy contract thus paying the deposit amount</li>
+                <li>submit a deduction claim (in order to agree with or object to landlord's deduction claim</li>
+                <li>withdraw the paid deposit or eventually (deposit - deduction), which deduction is either agreed
+                    with the landlord or the arbiter resolves a dispute in favour of the landlord and rules given
+                    deduction amount
+                </li>
+            </ul>
         </p>
-        <strong>Tenancy Agreement</strong><br/>
-        <label for="tLandlordAddress">Landlord Address: </label>
-        <input type="text" name="tLandlordAddress" id="tLandlordAddress" disabled><br>
-        <label for="tTenantAddress">Tenant Address: </label>
-        <input type="text" name="tTenantAddress" id="tTenantAddress" disabled><br>
-        <label for="tArbiterAddress">Arbiter Address: </label>
-        <input type="text" name="tArbiterAddress" id="tArbiterAddress" disabled><br>
-        <label for="tContractLength">Contract Length: </label>
-        <input type="text" name="tContractLength" id="tContractLength" disabled><br>
-        <!--<input type="button" id="documentClaimTenantDeduction" value="Submit"/><br/>-->
-        <!--<input type="button" id="documentWithdrawDeduction" value="Submit"/>-->
     </section>
 
     <section id="viewArbiter">
         <h1>Arbiter</h1>
-        <p><strong>Arbiter</strong> could:
-        <ul>
-            <li>rules a deduction amount in favour of the landlord in case of a dispute</li>
-        </ul>
-        </p>
-        <strong>Tenancy Agreement</strong><br/>
-        <label for="aLandlordAddress">Landlord Address: </label>
-        <input type="text" name="aLandlordAddress" id="aLandlordAddress" disabled><br>
-        <label for="aTenantAddress">Tenant Address: </label>
-        <input type="text" name="aTenantAddress" id="aTenantAddress" disabled><br>
-        <label for="aArbiterAddress">Arbiter Address: </label>
-        <input type="text" name="aArbiterAddress" id="aArbiterAddress" disabled><br>
-        <label for="aContractLength">Contract Length: </label>
-        <input type="text" name="aContractLength" id="aContractLength" disabled><br>
-        <!--<input type="button" id="documentClaimTenantDeduction" value="Submit"/><br/>-->
+        <strong>Tenancy Agreement</strong><br>
+        <!-- fields -->
+        <label for="arbiter-landlordAddress">Landlord Address: </label>
+        <input type="text" name="arbiter-landlordAddress" id="arbiter-landlordAddress" size="40" disabled><br>
+        <label for="arbiter-tenantAddress">Tenant Address: </label>
+        <input type="text" name="arbiter-tenantAddress" id="arbiter-tenantAddress" size="40" disabled><br>
+        <label for="arbiter-arbiterAddress">Arbiter Address: </label>
+        <input type="text" name="arbiter-arbiterAddress" id="arbiter-arbiterAddress" size="40" disabled><br>
+        <label for="arbiter-deposit">Deposit: </label>
+        <input type="number" name="arbiter-deposit" id="arbiter-deposit" size="20" disabled><br>
+        <label for="arbiter-deduction">Deduction: </label>
+        <input type="number" name="arbiter-deduction" id="arbiter-deduction" size="20" disabled><br>
+        <label for="arbiter-status">Status: </label>
+        <input type="text" name="arbiter-status" id="arbiter-status" value="N/A" size="20" disabled><br>
+        <!-- buttons -->
+        <input type="submit" id="documentArbiterResolveDispute" value="Resolve Dispute" disabled/>
+        <!--<input type="button" id="documentClaimTenantDeduction" value="Submit"/><br>-->
         <!--<input type="button" id="documentWithdrawDeduction" value="Submit"/>-->
+        <p>
+            <strong>Arbiter</strong> could:
+            <ul>
+                <li>rules a deduction amount in favour of the landlord in case of a dispute</li>
+            </ul>
+        </p>
     </section>
 
     <section id="viewVerifyDocument">
         <h1>Verify a Document</h1>
         <p>Blockchain users can verify documents by checking whether they exist in the "Document Registry" smart
             contract on the Ethereum blockchain decentralized network.</p>
-        <input type="file" id="documentToVerify"/><br/>
+        <input type="file" id="documentToVerify"/><br>
         <input type="button" id="documentVerifyButton" value="Submit"/>
     </section>
 </main>

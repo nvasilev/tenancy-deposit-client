@@ -71,6 +71,17 @@ section h1 {
     background: #F50;
 }
 
+label {
+    display: block;
+    float: left;
+    clear: left;
+    width: 150px;
+}
+
+input#contractAddress {
+    width: 40ch;
+}
+
 footer {
     background: #DDD;
     padding: 5px 10px;
