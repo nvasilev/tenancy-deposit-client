@@ -15,22 +15,9 @@ $(document).ready(function () {
     const KEY_IS_ROPSTEN = 'isRopstenTestNet';
     const KEY_CONTRACT_ADDRESS = 'tenancyDepositContractAddress';
 
-
     var statusChangedEvent;
     var depositClaimedEvent;
     var balanceChangedEvent;
-
-    const ContractStatus = [
-        "Not Signed",
-        "Deposit Required",
-        "Active" ,
-        "Complete",
-        "Deduction Claiming" ,
-        "Deduction Agreed",
-        "Dispute",
-        "Dispute Resolved",
-        "Done"
-    ];
 
     resetTenancyDepositContractData();
 
@@ -42,14 +29,14 @@ $(document).ready(function () {
             let tenantAddress = $('#contract-tenantAddress').val();
             let arbiterAddress = $('#contract-arbiterAddress').val();
             let deposit = $('#contract-deposit').val();
-            let isRopstenTestNet = $('#ropstenTestNet').is(':checked');
+            let isRopstenTestNet = $('#contract-ropstenTestNet').is(':checked');
 
             // validate input
             // validateActorAddress(landlordAddress, "landlord");
             // validateActorAddress(tenantAddress, "tenant");
             // validateActorAddress(arbiterAddress, "arbiter");
 
-            createContract(isRopstenTestNet, landlordAddress, tenantAddress, arbiterAddress, deposit);
+            createContract(isRopstenTestNet, landlordAddress, tenantAddress, arbiterAddress, deposit, defaultCallbackHandler);
 
         } else {
             // TODO make it visible
@@ -96,7 +83,6 @@ $(document).ready(function () {
                         localStorage.setItem(KEY_DEPOSIT, ""+expectedDeposit);
                         localStorage.setItem(KEY_IS_ROPSTEN, isRopstenTestNet);
                         localStorage.setItem(KEY_CONTRACT_ADDRESS, contract.address);
-                        // localStorage.setItem(KEY_STATUS, contractStatus);
 
                         // register event listeners
                         statusChangedEvent = contract.StatusChanged({_contractAddress:contract.address},{fromBlock: 0, toBlock: 'latest'});
@@ -104,12 +90,58 @@ $(document).ready(function () {
 
                         balanceChangedEvent = contract.BalanceChanged({_contractAddress:contract.address},{fromBlock: 0, toBlock: 'latest'});
                         balanceChangedEvent.watch(handleBalanceChanged);
-                        // _callback(contract);
                     }
                 });
         }
     }
 
+    function tenantSignContract() {
+        console.log('tenant signs contract...');
+
+        if (isRopstenTestNet()) {
+            if (typeof web3 === 'undefined') {
+                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
+            }
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+        }
+        let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
+        let tenantAddress = localStorage.getItem(KEY_TENANT_ADDRESS);
+        let deposit = localStorage.getItem(KEY_DEPOSIT);
+
+        let contract = web3.eth.contract(tenancyContractABI).at(tenancyContractAddress);
+
+        contract.signContract({from: tenantAddress, value: deposit}, defaultCallbackHandler);
+    }
+
+    function landlordTerminateContract() {
+        terminateContract(KEY_LANDLORD_ADDRESS);
+    }
+
+    function tenantTerminateContract() {
+        terminateContract(KEY_TENANT_ADDRESS);
+    }
+
+    function terminateContract(senderAddressKey) {
+        console.log('terminating contract...');
+
+        if (isRopstenTestNet()) {
+            if (typeof web3 === 'undefined') {
+                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
+            }
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+        }
+
+        let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
+        let senderAddress = localStorage.getItem(senderAddressKey);
+
+        let contract = web3.eth.contract(tenancyContractABI).at(tenancyContractAddress);
+
+        contract.terminateContract({from: senderAddress}, defaultCallbackHandler);
+    }
+
+    // TODO move this logic (state machine?) out in a separate module/file/package
     function handleStatusChanged(error, statusChangedEvent){
         if (error) {
             console.error("Problem handling StatusChanged event: " + error);
@@ -121,8 +153,6 @@ $(document).ready(function () {
             let newContractStatus = getStatus(newStatusIndex);
             let oldContractStatus = getStatus(oldContractStatusIndex);
 
-            console.log("status change attempt: " + oldContractStatusIndex + " -> " + newStatusIndex);
-
             let logMsg = "changing status: "+ oldContractStatusIndex + " -> " + newStatusIndex;
             let errMsg = "Invalid new contract status '" + newContractStatus
                 + "' when old one is '" + oldContractStatus + "'";
@@ -130,7 +160,7 @@ $(document).ready(function () {
             switch(oldContractStatusIndex) {
                 case -1: // N/A
                     switch (newStatusIndex) {
-                        case 0: // Contract Created: N/A -> Not Signed
+                        case 0: // Booting Up: N/A -> Not Signed
                         {
                             console.log(logMsg);
 
@@ -164,6 +194,7 @@ $(document).ready(function () {
                             disableElement('contract-arbiterAddress');
                             disableElement('contract-deposit');
                             disableElement('contract-deduction');
+                            disableElement('contract-ropstenTestNet');
                             disableElement('documentCreateTenancyDepositContract');
 
                             enableElement('documentResetTenancyDepositContract');
@@ -196,10 +227,33 @@ $(document).ready(function () {
                         default:
                             console.error(errMsg);
                     }
+                case 2: // Active
+                    switch(newStatusIndex)
+                    {
+                        case 3: // Contract Comes to an End: Active -> Complete
+                        {
+                            console.log(logMsg);
+                            // update model:
+                            localStorage.setItem(KEY_STATUS, newStatusIndex);
+
+                            // update UI:
+                            updateView(KEY_STATUS, newContractStatus);
+
+                            // landlord ui controls
+                            disableElement('documentLandlordTerminateContract');
+                            enableElement('documentLandlordClaimDeduction');
+
+                            // tenant ui controls
+                            disableElement('documentTenantTerminateContract');
+                            enableElement('documentTenantClaimDeduction');
+                            break;
+                        }
+                        default:
+                            console.error(errMsg);
+                    }
                 default:
                     console.error(errMsg);
             }
-
         }
     }
 
@@ -220,57 +274,30 @@ $(document).ready(function () {
         }
     }
 
-    function getContractStatus(tenancyContractAddress, isRopstenTestNet, _callback) {
-        console.log("retrieve status...")
-        let contractStatus = 0;
-        if (isRopstenTestNet) {
-            if (typeof web3 === 'undefined') {
-                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
-            }
-        } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-        }
-        let contract = web3.eth.contract(tenancyContractABI).at(tenancyContractAddress);
-
-        contract.getContractStatus(function (err, contractStatusIndex) {
-            if (err) {
-                console.error(err);
-            } else {
-                if (contractStatusIndex >= 0 && contractStatusIndex < ContractStatus.length)
-                {
-                    // contractStatus = ContractStatus[contractStatusIndex];
-                    _callback(contractStatus);
-                } else {
-                    console.error("Invalid contract status index: " + contractStatusIndex);
-                }
-            }
-        });
-    }
-
     function getStatus(statusIndex) {
+        const ContractStatus = [
+            "Not Signed",
+            "Deposit Required",
+            "Active" ,
+            "Complete",
+            "Deduction Claiming" ,
+            "Deduction Agreed",
+            "Dispute",
+            "Dispute Resolved",
+            "Done"
+        ];
         if (statusIndex < 0 || statusIndex >= ContractStatus.length) {
             return "N/A";
         }
         return ContractStatus[statusIndex];
     }
 
-    function tenantSignContract() {
-        console.log('tenant signs contract...');
-
-        if (isRopstenTestNet()) {
-            if (typeof web3 === 'undefined') {
-                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
-            }
+    function defaultCallbackHandler(error, result) {
+        if(error) {
+            console.error(error);
         } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+            console.log(result);
         }
-        let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
-        let tenantAddress = localStorage.getItem(KEY_TENANT_ADDRESS);
-        let deposit = localStorage.getItem(KEY_DEPOSIT);
-
-        let contract = web3.eth.contract(tenancyContractABI).at(tenancyContractAddress);
-
-        contract.signContract({from: tenantAddress, value: deposit});
     }
 
     function resetTenancyDepositContractData() {
@@ -283,14 +310,16 @@ $(document).ready(function () {
             updateView(KEY_DEPOSIT, "");
             updateView("deduction", "");
             updateView(KEY_STATUS, "N/A");
+            $('#contract-ropstenTestNet').prop('checked', false);
 
             // reset tenancy deposit agreement controls
             enableElement('contract-landlordAddress');
             enableElement('contract-tenantAddress');
             enableElement('contract-arbiterAddress');
             enableElement('contract-deposit');
+            enableElement('contract-ropstenTestNet');
             enableElement('documentCreateTenancyDepositContract');
-            disableElement('documentResetTenancyDepositContract');
+            enableElement('documentResetTenancyDepositContract');
 
             // disable landlord ui controls
             disableElement('documentLandlordTerminateContract');
@@ -443,9 +472,13 @@ $(document).ready(function () {
 
     $('#documentCreateTenancyDepositContract').click(createTenancyDepositContractData);
 
-    $('#documentResetTenancyDepositContract').click(resetTenancyDepositContractData);
-
     $('#documentTenantSignContract').click(tenantSignContract);
+
+    $('#documentLandlordTerminateContract').click(landlordTerminateContract);
+
+    $('#documentTenantTerminateContract').click(tenantTerminateContract);
+
+    $('#documentResetTenancyDepositContract').click(resetTenancyDepositContractData);
 
 // Attach AJAX "loading" event listener
     $(document).on({
