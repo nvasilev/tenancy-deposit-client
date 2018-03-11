@@ -107,6 +107,8 @@ $(document).ready(function () {
     function resetTenancyDepositContractData() {
         console.log("cleanup...");
         if (typeof(Storage) !== "undefined") {
+            localStorage.clear();
+
             updateView("landlordAddress", "");
             updateView("tenantAddress", "");
             updateView("arbiterAddress", "");
@@ -114,10 +116,29 @@ $(document).ready(function () {
             updateView("deduction", "");
             updateView("status", "N/A");
 
-            disableElement('landlord-deposit');
-            disableElement('landlord-deduction');
+            // reset tenancy deposit agreement controls
+            enableElement('contract-landlordAddress');
+            enableElement('contract-tenantAddress');
+            enableElement('contract-arbiterAddress');
+            enableElement('contract-deposit');
+            enableElement('documentCreateTenancyDepositContract');
+            disableElement('documentResetTenancyDepositContract');
 
-            localStorage.clear();
+            // disable landlord ui controls
+            // disableElement('landlord-deposit');
+            // disableElement('landlord-deduction');
+            disableElement('documentLandlordTerminateContract');
+            disableElement('documentLandlordClaimDeduction');
+            disableElement('documentLandlordWithdrawDeduction');
+
+            // disable tenant ui controls
+            disableElement('documentTenantPayDeposit');
+            disableElement('documentTenantTerminateContract');
+            disableElement('documentTenantClaimDeduction');
+            disableElement('documentTenantWithdrawDeposit');
+
+            // disable arbiter ui controls
+            disableElement('documentArbiterResolveDispute');
         } else {
             // TODO make it visible
             console.error("no local storage support...");
