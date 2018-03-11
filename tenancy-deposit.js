@@ -1,13 +1,24 @@
 $(document).ready(function () {
-    resetTenancyDepositContractData();
 
     const documentRegistryContractAddress = "0x4cf854fd2b0a542f93c62450c37b3e0565f2f5bb";
 
-    const tenancyContractABI = [{"constant":false,"inputs":[],"name":"withdrawLandlordClaim","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[],"name":"terminateContract","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_tenantDeductionClaim","type":"uint256"}],"name":"tenantClaimDeduction","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getExpectedDeposit","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"signContract","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"getContractStatus","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"withdrawTenantDeposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"claim","type":"uint256"}],"name":"resolveDispute","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_landlordDeductionClaim","type":"uint256"}],"name":"landlordClaimDeduction","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getPaidDeposit","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_tenant","type":"address"},{"name":"_arbiter","type":"address"},{"name":"_expectedDeposit","type":"uint256"}],"payable":true,"stateMutability":"payable","type":"constructor"}];
+    const tenancyContractABI = [{"constant":false,"inputs":[],"name":"withdrawLandlordClaim","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"getLandlordDeductionClaim","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"terminateContract","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"getTenantDeductionClaim","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getArbiterDeductionClaim","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_tenantDeductionClaim","type":"uint256"}],"name":"tenantClaimDeduction","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getExpectedDeposit","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"signContract","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"getContractStatus","outputs":[{"name":"","type":"uint8"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"withdrawTenantDeposit","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"claim","type":"uint256"}],"name":"resolveDispute","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_landlordDeductionClaim","type":"uint256"}],"name":"landlordClaimDeduction","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getPaidDeposit","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_tenant","type":"address"},{"name":"_arbiter","type":"address"},{"name":"_expectedDeposit","type":"uint256"}],"payable":true,"stateMutability":"payable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_contractAddress","type":"address"},{"indexed":true,"name":"_from","type":"address"},{"indexed":true,"name":"statusIndex","type":"uint256"}],"name":"StatusChanged","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_contractAddress","type":"address"},{"indexed":true,"name":"_from","type":"address"},{"indexed":false,"name":"claim","type":"uint256"}],"name":"DeductionClaimed","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_contractAddress","type":"address"},{"indexed":true,"name":"_from","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"BalanceChanged","type":"event"}];
+    const tenancyContractData = '0x606060405260008060006101000a81548160ff0219169083600881111561002257fe5b021790555060405160608062001866833981016040528080519060200190919080519060200190919080519060200190919050503373ffffffffffffffffffffffffffffffffffffffff168373ffffffffffffffffffffffffffffffffffffffff161415151561009157600080fd5b3373ffffffffffffffffffffffffffffffffffffffff168273ffffffffffffffffffffffffffffffffffffffff16141515156100cc57600080fd5b8273ffffffffffffffffffffffffffffffffffffffff168273ffffffffffffffffffffffffffffffffffffffff161415151561010757600080fd5b60008111151561011657600080fd5b6000600881111561012357fe5b6000809054906101000a900460ff16600881111561013d57fe5b14151561014957600080fd5b30600060016101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000809054906101000a900460ff1660088111156101a457fe5b3373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f6b09150b12f595e5171ac7600c65498802bf21649934f6cd7ef5c422c47afdf560405160405180910390a433600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000600160146101000a81548160ff021916908315150217905550600060028190555082600360006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000600360146101000a81548160ff021916908315150217905550600060048190555081600560006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555060006006819055508060078190555060006008819055504260098190555060016000806101000a81548160ff0219169083600881111561036557fe5b02179055506000809054906101000a900460ff16600881111561038457fe5b3373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f6b09150b12f595e5171ac7600c65498802bf21649934f6cd7ef5c422c47afdf560405160405180910390a450505061145380620004136000396000f3006060604052600436106100c5576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680630aaaba1f146100ca5780632f12bcf2146100d45780632fd949ca146100fd57806343890630146101075780637219dc0414610130578063735e595c146101595780638be231551461017c578063b8b4f1a0146101a5578063c032846b146101af578063c1d80a52146101e6578063c2b7b868146101f0578063c5e80fc314610208578063eac062061461022b575b600080fd5b6100d2610254565b005b34156100df57600080fd5b6100e7610554565b6040518082815260200191505060405180910390f35b61010561055e565b005b341561011257600080fd5b61011a610702565b6040518082815260200191505060405180910390f35b341561013b57600080fd5b61014361070c565b6040518082815260200191505060405180910390f35b341561016457600080fd5b61017a6004808035906020019091905050610716565b005b341561018757600080fd5b61018f6109db565b6040518082815260200191505060405180910390f35b6101ad6109e5565b005b34156101ba57600080fd5b6101c2610c09565b604051808260088111156101d257fe5b60ff16815260200191505060405180910390f35b6101ee610c1f565b005b6102066004808035906020019091905050610f24565b005b341561021357600080fd5b6102296004808035906020019091905050611123565b005b341561023657600080fd5b61023e6113e7565b6040518082815260200191505060405180910390f35b60003373ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff161415156102b257600080fd5b600560088111156102bf57fe5b6000809054906101000a900460ff1660088111156102d957fe5b14806103095750600760088111156102ed57fe5b6000809054906101000a900460ff16600881111561030757fe5b145b151561031457600080fd5b600160159054906101000a900460ff1615151561033057600080fd5b60025490506007600881111561034257fe5b6000809054906101000a900460ff16600881111561035c57fe5b14156103685760065490505b3373ffffffffffffffffffffffffffffffffffffffff166108fc829081150290604051600060405180830381858888f1935050505015156103a857600080fd5b60018060156101000a81548160ff021916908315150217905550600360159054906101000a900460ff16156103fb5760086000806101000a81548160ff021916908360088111156103f557fe5b02179055505b6000809054906101000a900460ff16600881111561041557fe5b3373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f6b09150b12f595e5171ac7600c65498802bf21649934f6cd7ef5c422c47afdf560405160405180910390a43373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f7a350141a4375888264971fc98bdf535c1843ad8a215baaede8397fb56404ab3600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16316040518082815260200191505060405180910390a350565b6000600254905090565b600280600881111561056c57fe5b6000809054906101000a900460ff16600881111561058657fe5b14151561059257600080fd5b3373ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16148061063b57503373ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16145b151561064657600080fd5b60036000806101000a81548160ff0219169083600881111561066457fe5b02179055506000809054906101000a900460ff16600881111561068357fe5b3373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f6b09150b12f595e5171ac7600c65498802bf21649934f6cd7ef5c422c47afdf560405160405180910390a450565b6000600454905090565b6000600654905090565b3373ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614151561077257600080fd5b6003600881111561077f57fe5b6000809054906101000a900460ff16600881111561079957fe5b14806107c95750600460088111156107ad57fe5b6000809054906101000a900460ff1660088111156107c757fe5b145b15156107d457600080fd5b600360149054906101000a900460ff161515156107f057600080fd5b600854811115151561080157600080fd5b806004819055506001600360146101000a81548160ff021916908315150217905550600160149054906101000a900460ff161561089557600254600454141561086c5760056000806101000a81548160ff0219169083600881111561086257fe5b0217905550610890565b60066000806101000a81548160ff0219169083600881111561088a57fe5b02179055505b6108b9565b60046000806101000a81548160ff021916908360088111156108b357fe5b02179055505b6000809054906101000a900460ff1660088111156108d357fe5b3373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f6b09150b12f595e5171ac7600c65498802bf21649934f6cd7ef5c422c47afdf560405160405180910390a43373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167fb7352098535b7072027d7437004758c0d00d74a9c5507ae9fdff69a91fd6f89b6004546040518082815260200191505060405180910390a350565b6000600754905090565b3373ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16141515610a4157600080fd5b6001806008811115610a4f57fe5b6000809054906101000a900460ff166008811115610a6957fe5b141515610a7557600080fd5b3460075411151515610a8657600080fd5b3460088190555060026000806101000a81548160ff02191690836008811115610aab57fe5b02179055506000809054906101000a900460ff166008811115610aca57fe5b3373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f6b09150b12f595e5171ac7600c65498802bf21649934f6cd7ef5c422c47afdf560405160405180910390a43373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f7a350141a4375888264971fc98bdf535c1843ad8a215baaede8397fb56404ab3600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16316040518082815260200191505060405180910390a350565b60008060009054906101000a900460ff16905090565b60003373ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16141515610c7d57600080fd5b60056008811115610c8a57fe5b6000809054906101000a900460ff166008811115610ca457fe5b1480610cd4575060076008811115610cb857fe5b6000809054906101000a900460ff166008811115610cd257fe5b145b1515610cdf57600080fd5b600360159054906101000a900460ff16151515610cfb57600080fd5b600254905060076008811115610d0d57fe5b6000809054906101000a900460ff166008811115610d2757fe5b1415610d335760065490505b3373ffffffffffffffffffffffffffffffffffffffff166108fc82600854039081150290604051600060405180830381858888f193505050501515610d7757600080fd5b6001600360156101000a81548160ff021916908315150217905550600160159054906101000a900460ff1615610dcb5760086000806101000a81548160ff02191690836008811115610dc557fe5b02179055505b6000809054906101000a900460ff166008811115610de557fe5b3373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f6b09150b12f595e5171ac7600c65498802bf21649934f6cd7ef5c422c47afdf560405160405180910390a43373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f7a350141a4375888264971fc98bdf535c1843ad8a215baaede8397fb56404ab3600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16316040518082815260200191505060405180910390a350565b3373ffffffffffffffffffffffffffffffffffffffff16600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16141515610f8057600080fd5b6006806008811115610f8e57fe5b6000809054906101000a900460ff166008811115610fa857fe5b141515610fb457600080fd5b60025460045414151515610fc757600080fd5b6008548211151515610fd857600080fd5b8160068190555060076000806101000a81548160ff02191690836008811115610ffd57fe5b02179055506000809054906101000a900460ff16600881111561101c57fe5b3373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f6b09150b12f595e5171ac7600c65498802bf21649934f6cd7ef5c422c47afdf560405160405180910390a43373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167fb7352098535b7072027d7437004758c0d00d74a9c5507ae9fdff69a91fd6f89b846040518082815260200191505060405180910390a35050565b3373ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614151561117f57600080fd5b6003600881111561118c57fe5b6000809054906101000a900460ff1660088111156111a657fe5b14806111d65750600460088111156111ba57fe5b6000809054906101000a900460ff1660088111156111d457fe5b145b15156111e157600080fd5b600160149054906101000a900460ff161515156111fd57600080fd5b600854811115151561120e57600080fd5b8060028190555060018060146101000a81548160ff021916908315150217905550600360149054906101000a900460ff16156112a15760025460045414156112785760056000806101000a81548160ff0219169083600881111561126e57fe5b021790555061129c565b60066000806101000a81548160ff0219169083600881111561129657fe5b02179055505b6112c5565b60046000806101000a81548160ff021916908360088111156112bf57fe5b02179055505b6000809054906101000a900460ff1660088111156112df57fe5b3373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167f6b09150b12f595e5171ac7600c65498802bf21649934f6cd7ef5c422c47afdf560405160405180910390a43373ffffffffffffffffffffffffffffffffffffffff16600060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff167fb7352098535b7072027d7437004758c0d00d74a9c5507ae9fdff69a91fd6f89b6002546040518082815260200191505060405180910390a350565b60008060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16319050905600a165627a7a7230582045db9dcbd6738bdc7e8484da79727ec7075cd62e06fa3cb0f2745824907d8d130029';
+    const tenancyContractGas = 4469392;
 
-    const tenancyContractData = '0x606060405260008060006101000a81548160ff0219169083600881111561002257fe5b0217905550604051606080610e8b833981016040528080519060200190919080519060200190919080519060200190919050503373ffffffffffffffffffffffffffffffffffffffff168373ffffffffffffffffffffffffffffffffffffffff161415151561009057600080fd5b3373ffffffffffffffffffffffffffffffffffffffff168273ffffffffffffffffffffffffffffffffffffffff16141515156100cb57600080fd5b8273ffffffffffffffffffffffffffffffffffffffff168273ffffffffffffffffffffffffffffffffffffffff161415151561010657600080fd5b60008111151561011557600080fd5b6000600881111561012257fe5b6000809054906101000a900460ff16600881111561013c57fe5b14151561014857600080fd5b30600060016101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555033600160006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000600160146101000a81548160ff021916908315150217905550600060028190555082600360006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff1602179055506000600360146101000a81548160ff021916908315150217905550600060048190555081600560006101000a81548173ffffffffffffffffffffffffffffffffffffffff021916908373ffffffffffffffffffffffffffffffffffffffff16021790555060006006819055508060078190555060006008819055504260098190555060016000806101000a81548160ff021916908360088111156102ce57fe5b0217905550505050610ba6806102e56000396000f3006060604052600436106100a4576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680630aaaba1f146100a95780632fd949ca146100b3578063735e595c146100bd5780638be23155146100e0578063b8b4f1a014610109578063c032846b14610113578063c1d80a521461014a578063c2b7b86814610154578063c5e80fc31461016c578063eac062061461018f575b600080fd5b6100b16101b8565b005b6100bb610362565b005b34156100c857600080fd5b6100de6004808035906020019091905050610470565b005b34156100eb57600080fd5b6100f3610616565b6040518082815260200191505060405180910390f35b610111610620565b005b341561011e57600080fd5b6101266106ee565b6040518082600881111561013657fe5b60ff16815260200191505060405180910390f35b610152610704565b005b61016a60048080359060200190919050506108b3565b005b341561017757600080fd5b61018d6004808035906020019091905050610995565b005b341561019a57600080fd5b6101a2610b3a565b6040518082815260200191505060405180910390f35b60003373ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614151561021657600080fd5b6005600881111561022357fe5b6000809054906101000a900460ff16600881111561023d57fe5b148061026d57506007600881111561025157fe5b6000809054906101000a900460ff16600881111561026b57fe5b145b151561027857600080fd5b600160159054906101000a900460ff1615151561029457600080fd5b6002549050600760088111156102a657fe5b6000809054906101000a900460ff1660088111156102c057fe5b14156102cc5760065490505b3373ffffffffffffffffffffffffffffffffffffffff166108fc829081150290604051600060405180830381858888f19350505050151561030c57600080fd5b60018060156101000a81548160ff021916908315150217905550600360159054906101000a900460ff161561035f5760086000806101000a81548160ff0219169083600881111561035957fe5b02179055505b50565b600280600881111561037057fe5b6000809054906101000a900460ff16600881111561038a57fe5b14151561039657600080fd5b3373ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16148061043f57503373ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16145b151561044a57600080fd5b60036000806101000a81548160ff0219169083600881111561046857fe5b021790555050565b3373ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff161415156104cc57600080fd5b600360088111156104d957fe5b6000809054906101000a900460ff1660088111156104f357fe5b148061052357506004600881111561050757fe5b6000809054906101000a900460ff16600881111561052157fe5b145b151561052e57600080fd5b600360149054906101000a900460ff1615151561054a57600080fd5b600854811115151561055b57600080fd5b806004819055506001600360146101000a81548160ff021916908315150217905550600160149054906101000a900460ff16156105ef5760025460045414156105c65760056000806101000a81548160ff021916908360088111156105bc57fe5b02179055506105ea565b60066000806101000a81548160ff021916908360088111156105e457fe5b02179055505b610613565b60046000806101000a81548160ff0219169083600881111561060d57fe5b02179055505b50565b6000600754905090565b3373ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614151561067c57600080fd5b600180600881111561068a57fe5b6000809054906101000a900460ff1660088111156106a457fe5b1415156106b057600080fd5b34600754111515156106c157600080fd5b3460088190555060026000806101000a81548160ff021916908360088111156106e657fe5b021790555050565b60008060009054906101000a900460ff16905090565b60003373ffffffffffffffffffffffffffffffffffffffff16600360009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614151561076257600080fd5b6005600881111561076f57fe5b6000809054906101000a900460ff16600881111561078957fe5b14806107b957506007600881111561079d57fe5b6000809054906101000a900460ff1660088111156107b757fe5b145b15156107c457600080fd5b600360159054906101000a900460ff161515156107e057600080fd5b6002549050600760088111156107f257fe5b6000809054906101000a900460ff16600881111561080c57fe5b14156108185760065490505b3373ffffffffffffffffffffffffffffffffffffffff166108fc82600854039081150290604051600060405180830381858888f19350505050151561085c57600080fd5b6001600360156101000a81548160ff021916908315150217905550600160159054906101000a900460ff16156108b05760086000806101000a81548160ff021916908360088111156108aa57fe5b02179055505b50565b3373ffffffffffffffffffffffffffffffffffffffff16600560009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff1614151561090f57600080fd5b600680600881111561091d57fe5b6000809054906101000a900460ff16600881111561093757fe5b14151561094357600080fd5b6002546004541415151561095657600080fd5b600854821115151561096757600080fd5b8160068190555060076000806101000a81548160ff0219169083600881111561098c57fe5b02179055505050565b3373ffffffffffffffffffffffffffffffffffffffff16600160009054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff161415156109f157600080fd5b600360088111156109fe57fe5b6000809054906101000a900460ff166008811115610a1857fe5b1480610a48575060046008811115610a2c57fe5b6000809054906101000a900460ff166008811115610a4657fe5b145b1515610a5357600080fd5b600160149054906101000a900460ff16151515610a6f57600080fd5b6008548111151515610a8057600080fd5b8060028190555060018060146101000a81548160ff021916908315150217905550600360149054906101000a900460ff1615610b13576002546004541415610aea5760056000806101000a81548160ff02191690836008811115610ae057fe5b0217905550610b0e565b60066000806101000a81548160ff02191690836008811115610b0857fe5b02179055505b610b37565b60046000806101000a81548160ff02191690836008811115610b3157fe5b02179055505b50565b60008060019054906101000a900473ffffffffffffffffffffffffffffffffffffffff1673ffffffffffffffffffffffffffffffffffffffff16319050905600a165627a7a72305820962d60cef77d7a1f72b2d6e9174ba89aafea9eb59cb0861e49b68eb31ec6fa240029';
+    const KEY_LANDLORD_ADDRESS = 'landlordAddress';
+    const KEY_TENANT_ADDRESS = 'tenantAddress';
+    const KEY_ARBITER_ADDRESS = 'arbiterAddress';
+    const KEY_DEPOSIT = 'deposit';
+    const KEY_BALANCE = 'balance';
+    const KEY_STATUS = 'status';
+    const KEY_IS_ROPSTEN = 'isRopstenTestNet';
+    const KEY_CONTRACT_ADDRESS = 'tenancyDepositContractAddress';
 
-    let tenancyContractAddress;
+
+    var statusChangedEvent;
+    var depositClaimedEvent;
+    var balanceChangedEvent;
 
     const ContractStatus = [
         "Not Signed",
@@ -20,6 +31,8 @@ $(document).ready(function () {
         "Dispute Resolved",
         "Done"
     ];
+
+    resetTenancyDepositContractData();
 
     function createTenancyDepositContractData() {
         console.log("setup Tenancy Deposit Contract Details...");
@@ -36,38 +49,8 @@ $(document).ready(function () {
             // validateActorAddress(tenantAddress, "tenant");
             // validateActorAddress(arbiterAddress, "arbiter");
 
-            createContract(isRopstenTestNet, landlordAddress, tenantAddress, arbiterAddress, deposit,
-                function callback(tenancyDepositContract) {
-                    getContractStatus(tenancyDepositContract.address, isRopstenTestNet,
-                        function updateModelAndView(contractStatus) {
+            createContract(isRopstenTestNet, landlordAddress, tenantAddress, arbiterAddress, deposit);
 
-                            // persist contract data to local storage
-                            localStorage.setItem('landlordAddress', landlordAddress);
-                            localStorage.setItem('tenantAddress', tenantAddress);
-                            localStorage.setItem('arbiterAddress', arbiterAddress);
-                            localStorage.setItem('deposit', ""+deposit);
-                            localStorage.setItem('isRopstenTestNet', isRopstenTestNet);
-                            localStorage.setItem('tenancyDepositContractAddress', tenancyDepositContract.address);
-                            localStorage.setItem('contractStatus', contractStatus);
-
-                            // update view
-                            updateView("landlordAddress", landlordAddress);
-                            updateView("tenantAddress", tenantAddress);
-                            updateView("arbiterAddress", arbiterAddress);
-                            updateView("deposit", deposit);
-                            updateView("status", contractStatus);
-
-                            disableElement('contract-landlordAddress');
-                            disableElement('contract-tenantAddress');
-                            disableElement('contract-arbiterAddress');
-                            disableElement('contract-deposit');
-                            disableElement('contract-deduction');
-                            disableElement('documentCreateTenancyDepositContract');
-
-                            enableElement('documentResetTenancyDepositContract');
-                            enableElement('documentTenantPayDeposit');
-                        });
-            });
         } else {
             // TODO make it visible
             console.error("no local storage support...");
@@ -80,72 +63,7 @@ $(document).ready(function () {
         }
     }
 
-    function setItem(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
-    }
-
-    function getItem(key) {
-        return JSON.parse(localStorage.getItem(key));
-    }
-
-    function updateView(key, value) {
-        $('#' + key).val(value);
-        $('#contract-' + key).val(value);
-        $('#landlord-' + key).val(value);
-        $('#tenant-' + key).val(value);
-        $('#arbiter-' + key).val(value);
-    }
-
-    function enableElement(key) {
-        $('#'+key).prop("disabled", false);
-    }
-
-    function disableElement(key) {
-        $('#'+key).prop("disabled", true);
-    }
-
-    function resetTenancyDepositContractData() {
-        console.log("cleanup...");
-        if (typeof(Storage) !== "undefined") {
-            localStorage.clear();
-
-            updateView("landlordAddress", "");
-            updateView("tenantAddress", "");
-            updateView("arbiterAddress", "");
-            updateView("deposit", "");
-            updateView("deduction", "");
-            updateView("status", "N/A");
-
-            // reset tenancy deposit agreement controls
-            enableElement('contract-landlordAddress');
-            enableElement('contract-tenantAddress');
-            enableElement('contract-arbiterAddress');
-            enableElement('contract-deposit');
-            enableElement('documentCreateTenancyDepositContract');
-            disableElement('documentResetTenancyDepositContract');
-
-            // disable landlord ui controls
-            // disableElement('landlord-deposit');
-            // disableElement('landlord-deduction');
-            disableElement('documentLandlordTerminateContract');
-            disableElement('documentLandlordClaimDeduction');
-            disableElement('documentLandlordWithdrawDeduction');
-
-            // disable tenant ui controls
-            disableElement('documentTenantPayDeposit');
-            disableElement('documentTenantTerminateContract');
-            disableElement('documentTenantClaimDeduction');
-            disableElement('documentTenantWithdrawDeposit');
-
-            // disable arbiter ui controls
-            disableElement('documentArbiterResolveDispute');
-        } else {
-            // TODO make it visible
-            console.error("no local storage support...");
-        }
-    }
-
-    function createContract(isRopstenTestNet, landlordAddress, tenantAddress, arbiterAddress, expectedDeposit, _callback) {
+    function createContract(isRopstenTestNet, landlordAddress, tenantAddress, arbiterAddress, expectedDeposit) {
         console.log("createContract...");
         if (typeof(Storage) !== "undefined") {
 
@@ -164,21 +82,147 @@ $(document).ready(function () {
                 {
                     from: landlordAddress,
                     data: tenancyContractData,
-                    gas: '4469392'
+                    gas: tenancyContractGas
                 }, function (error, contract){
                     if(error) {
                         console.error(error, contract);
                     } else if (typeof contract.address !== 'undefined') {
                         console.log('Contract mined! address: ' + contract.address + ' transactionHash: ' + contract.transactionHash);
-                        _callback(contract);
+
+                        // persist contract data to local storage
+                        localStorage.setItem(KEY_LANDLORD_ADDRESS, landlordAddress);
+                        localStorage.setItem(KEY_TENANT_ADDRESS, tenantAddress);
+                        localStorage.setItem(KEY_ARBITER_ADDRESS, arbiterAddress);
+                        localStorage.setItem(KEY_DEPOSIT, ""+expectedDeposit);
+                        localStorage.setItem(KEY_IS_ROPSTEN, isRopstenTestNet);
+                        localStorage.setItem(KEY_CONTRACT_ADDRESS, contract.address);
+                        // localStorage.setItem(KEY_STATUS, contractStatus);
+
+                        // register event listeners
+                        statusChangedEvent = contract.StatusChanged({_contractAddress:contract.address},{fromBlock: 0, toBlock: 'latest'});
+                        statusChangedEvent.watch(handleStatusChanged);
+
+                        balanceChangedEvent = contract.BalanceChanged({_contractAddress:contract.address},{fromBlock: 0, toBlock: 'latest'});
+                        balanceChangedEvent.watch(handleBalanceChanged);
+                        // _callback(contract);
                     }
                 });
         }
     }
 
+    function handleStatusChanged(error, statusChangedEvent){
+        if (error) {
+            console.error("Problem handling StatusChanged event: " + error);
+        } else {
+            let oldContractStatusIndex = parseInt(""+localStorage.getItem(KEY_STATUS));
+            let newStatusIndex = statusChangedEvent.args.statusIndex.c[0];
+            // TODO validate newStatusIndex
+
+            let newContractStatus = getStatus(newStatusIndex);
+            let oldContractStatus = getStatus(oldContractStatusIndex);
+
+            console.log("status change attempt: " + oldContractStatusIndex + " -> " + newStatusIndex);
+
+            let logMsg = "changing status: "+ oldContractStatusIndex + " -> " + newStatusIndex;
+            let errMsg = "Invalid new contract status '" + newContractStatus
+                + "' when old one is '" + oldContractStatus + "'";
+
+            switch(oldContractStatusIndex) {
+                case -1: // N/A
+                    switch (newStatusIndex) {
+                        case 0: // Contract Created: N/A -> Not Signed
+                        {
+                            console.log(logMsg);
+
+                            // update model:
+                            localStorage.setItem(KEY_STATUS, newStatusIndex);
+
+                            updateView(KEY_STATUS, newContractStatus);
+                        }
+                        default:
+                            console.error(errMsg);
+                        break;
+                    }
+                case 0: // Not Signed
+                    switch (newStatusIndex) {
+                        case 1: // Contract Created: Not Signed -> Deposit Required
+                        {
+                            console.log(logMsg);
+
+                            // update model:
+                            localStorage.setItem(KEY_STATUS, newStatusIndex);
+
+                            // update UI:
+                            updateView(KEY_LANDLORD_ADDRESS, localStorage.getItem(KEY_LANDLORD_ADDRESS));
+                            updateView(KEY_TENANT_ADDRESS, localStorage.getItem(KEY_TENANT_ADDRESS));
+                            updateView(KEY_ARBITER_ADDRESS, localStorage.getItem(KEY_ARBITER_ADDRESS));
+                            updateView(KEY_DEPOSIT, localStorage.getItem(KEY_DEPOSIT));
+                            updateView(KEY_STATUS, newContractStatus);
+
+                            disableElement('contract-landlordAddress');
+                            disableElement('contract-tenantAddress');
+                            disableElement('contract-arbiterAddress');
+                            disableElement('contract-deposit');
+                            disableElement('contract-deduction');
+                            disableElement('documentCreateTenancyDepositContract');
+
+                            enableElement('documentResetTenancyDepositContract');
+                            enableElement('documentTenantSignContract');
+                        }
+                        default:
+                            console.error(errMsg);
+                    }
+                    break;
+                case 1: // Deposit Required
+                    switch(newStatusIndex)
+                    {
+                        case 2: // Tenants Signs Contract: Deposit Required -> Active
+                        {
+                            console.log(logMsg);
+                            // update model:
+                            localStorage.setItem(KEY_STATUS, newStatusIndex);
+
+                            // update UI:
+                            updateView(KEY_STATUS, newContractStatus);
+
+                            // landlord ui controls
+                            enableElement('documentLandlordTerminateContract');
+
+                            // tenant ui controls
+                            disableElement('documentTenantSignContract');
+                            enableElement('documentTenantTerminateContract');
+                            break;
+                        }
+                        default:
+                            console.error(errMsg);
+                    }
+                default:
+                    console.error(errMsg);
+            }
+
+        }
+    }
+
+    function handleBalanceChanged(error, balanceChangedEvent){
+        if (error) {
+            console.error("Problem handling BalanceChanged event: " + error);
+        } else {
+            let newBalanceValue = balanceChangedEvent.args.value.c[0];
+            // TODO validate new balance value
+
+            console.log('balance changed to: ' + newBalanceValue);
+
+            // update model
+            localStorage.setItem(KEY_BALANCE, newBalanceValue);
+
+            // update UI
+            updateView(KEY_BALANCE, newBalanceValue);
+        }
+    }
+
     function getContractStatus(tenancyContractAddress, isRopstenTestNet, _callback) {
         console.log("retrieve status...")
-        let contractStatus = "N/A";
+        let contractStatus = 0;
         if (isRopstenTestNet) {
             if (typeof web3 === 'undefined') {
                 return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
@@ -194,20 +238,109 @@ $(document).ready(function () {
             } else {
                 if (contractStatusIndex >= 0 && contractStatusIndex < ContractStatus.length)
                 {
-                    contractStatus = ContractStatus[contractStatusIndex];
+                    // contractStatus = ContractStatus[contractStatusIndex];
                     _callback(contractStatus);
-                    return;
                 } else {
                     console.error("Invalid contract status index: " + contractStatusIndex);
                 }
             }
         });
-        _callback(contractStatus);
     }
+
+    function getStatus(statusIndex) {
+        if (statusIndex < 0 || statusIndex >= ContractStatus.length) {
+            return "N/A";
+        }
+        return ContractStatus[statusIndex];
+    }
+
+    function tenantSignContract() {
+        console.log('tenant signs contract...');
+
+        if (isRopstenTestNet()) {
+            if (typeof web3 === 'undefined') {
+                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
+            }
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+        }
+        let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
+        let tenantAddress = localStorage.getItem(KEY_TENANT_ADDRESS);
+        let deposit = localStorage.getItem(KEY_DEPOSIT);
+
+        let contract = web3.eth.contract(tenancyContractABI).at(tenancyContractAddress);
+
+        contract.signContract({from: tenantAddress, value: deposit});
+    }
+
+    function resetTenancyDepositContractData() {
+        console.log("cleanup...");
+
+        (function resetView() {
+            updateView(KEY_LANDLORD_ADDRESS, "");
+            updateView(KEY_TENANT_ADDRESS, "");
+            updateView(KEY_ARBITER_ADDRESS, "");
+            updateView(KEY_DEPOSIT, "");
+            updateView("deduction", "");
+            updateView(KEY_STATUS, "N/A");
+
+            // reset tenancy deposit agreement controls
+            enableElement('contract-landlordAddress');
+            enableElement('contract-tenantAddress');
+            enableElement('contract-arbiterAddress');
+            enableElement('contract-deposit');
+            enableElement('documentCreateTenancyDepositContract');
+            disableElement('documentResetTenancyDepositContract');
+
+            // disable landlord ui controls
+            disableElement('documentLandlordTerminateContract');
+            disableElement('documentLandlordClaimDeduction');
+            disableElement('documentLandlordWithdrawDeduction');
+
+            // disable tenant ui controls
+            disableElement('documentTenantSignContract');
+            disableElement('documentTenantTerminateContract');
+            disableElement('documentTenantClaimDeduction');
+            disableElement('documentTenantWithdrawDeposit');
+
+            // disable arbiter ui controls
+            disableElement('documentArbiterResolveDispute');
+        })();
+
+        // reset local storage
+        if (typeof(Storage) !== "undefined") {
+            localStorage.clear();
+            localStorage.setItem(KEY_STATUS, -1);
+        } else {
+            // TODO make it visible
+            console.error("no local storage support...");
+        }
+    }
+
+    function isRopstenTestNet() {
+        return JSON.parse(localStorage.getItem(KEY_IS_ROPSTEN)) === true;
+    }
+
+    function updateView(key, value) {
+        $('#' + key).val(value);
+        $('#contract-' + key).val(value);
+        $('#landlord-' + key).val(value);
+        $('#tenant-' + key).val(value);
+        $('#arbiter-' + key).val(value);
+    }
+
+    function enableElement(key) {
+        $('#'+key).prop("disabled", false);
+    }
+
+    function disableElement(key) {
+        $('#'+key).prop("disabled", true);
+    }
+
 
     function getContract() {
         let tenancyContractAddress = localStorage.getItem('tenancyContractAddress');
-        let isRopstenTestNet = JSON.parse(localStorage.getItem('isRopstenTestNet'));
+        let isRopstenTestNet = JSON.parse(localStorage.getItem(KEY_IS_ROPSTEN));
         if (isRopstenTestNet) {
             if (typeof web3 === 'undefined') {
                 return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
@@ -311,6 +444,8 @@ $(document).ready(function () {
     $('#documentCreateTenancyDepositContract').click(createTenancyDepositContractData);
 
     $('#documentResetTenancyDepositContract').click(resetTenancyDepositContractData);
+
+    $('#documentTenantSignContract').click(tenantSignContract);
 
 // Attach AJAX "loading" event listener
     $(document).on({

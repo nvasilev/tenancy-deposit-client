@@ -94,6 +94,8 @@
         <input type="text" name="contract-arbiterAddress" id="contract-arbiterAddress" size="40"><br>
         <label for="contract-deposit">Deposit: </label>
         <input type="number" name="contract-deposit" id="contract-deposit" size="20"><br>
+        <label for="contract-balance">Balance: </label>
+        <input type="number" name="contract-balance" id="contract-balance" size="20" disabled><br>
         <label for="contract-deduction">Deduction: </label>
         <input type="number" name="contract-deduction" id="contract-deduction" size="20" disabled><br>
         <label for="contract-status">Status: </label>
@@ -132,6 +134,8 @@
         <input type="text" name="landlord-arbiterAddress" id="landlord-arbiterAddress" size="40" disabled><br>
         <label for="landlord-deposit">Deposit: </label>
         <input type="number" name="landlord-deposit" id="landlord-deposit" size="20" disabled><br>
+        <label for="landlord-balance">Balance: </label>
+        <input type="number" name="landlord-balance" id="landlord-balance" size="20" disabled><br>
         <label for="landlord-deduction">Deduction: </label>
         <input type="number" name="landlord-deduction" id="landlord-deduction" size="20" disabled><br>
         <label for="landlord-status">Status: </label>
@@ -164,12 +168,14 @@
         <input type="text" name="tenant-arbiterAddress" id="tenant-arbiterAddress" size="40" disabled><br>
         <label for="tenant-deposit">Deposit: </label>
         <input type="number" name="tenant-deposit" id="tenant-deposit" size="20" disabled><br>
+        <label for="tenant-balance">Balance: </label>
+        <input type="number" name="tenant-balance" id="tenant-balance" size="20" disabled><br>
         <label for="tenant-deduction">Deduction: </label>
         <input type="number" name="tenant-deduction" id="tenant-deduction" size="20" disabled><br>
         <label for="tenant-status">Status: </label>
         <input type="text" name="tenant-status" id="tenant-status" value="N/A" size="20" disabled><br>
         <!-- buttons -->
-        <input type="submit" id="documentTenantPayDeposit" value="Pay Deposit" disabled/>
+        <input type="submit" id="documentTenantSignContract" value="Sign Contract" disabled/>
         <input type="submit" id="documentTenantTerminateContract" value="Terminate Contract" disabled/>
         <input type="submit" id="documentTenantClaimDeduction" value="Claim Deduction" disabled/>
         <input type="submit" id="documentTenantWithdrawDeposit" value="Withdraw Deposit" disabled/>
@@ -198,6 +204,8 @@
         <input type="text" name="arbiter-arbiterAddress" id="arbiter-arbiterAddress" size="40" disabled><br>
         <label for="arbiter-deposit">Deposit: </label>
         <input type="number" name="arbiter-deposit" id="arbiter-deposit" size="20" disabled><br>
+        <label for="arbiter-balance">Balance: </label>
+        <input type="number" name="arbiter-balance" id="arbiter-balance" size="20" disabled><br>
         <label for="arbiter-deduction">Deduction: </label>
         <input type="number" name="arbiter-deduction" id="arbiter-deduction" size="20" disabled><br>
         <label for="arbiter-status">Status: </label>
