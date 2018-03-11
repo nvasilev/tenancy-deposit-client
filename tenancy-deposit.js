@@ -10,13 +10,17 @@ $(document).ready(function () {
     const KEY_TENANT_ADDRESS = 'tenantAddress';
     const KEY_ARBITER_ADDRESS = 'arbiterAddress';
     const KEY_DEPOSIT = 'deposit';
+    const KEY_DEDUCTION = 'deduction';
     const KEY_BALANCE = 'balance';
     const KEY_STATUS = 'status';
     const KEY_IS_ROPSTEN = 'isRopstenTestNet';
     const KEY_CONTRACT_ADDRESS = 'tenancyDepositContractAddress';
+    const KEY_LANDLORD_DEDUCTION_CLAIM = 'landlordDeductionClaim';
+    const KEY_TENANT_DEDUCTION_CLAIM = 'landlordTenantDeductionClaim';
+    const KEY_ARBITER_DEDUCTION_CLAIM = 'landlordArbiterDeductionClaim';
 
     var statusChangedEvent;
-    var depositClaimedEvent;
+    var deductionClaimedEvent;
     var balanceChangedEvent;
 
     resetTenancyDepositContractData();
@@ -90,6 +94,9 @@ $(document).ready(function () {
 
                         balanceChangedEvent = contract.BalanceChanged({_contractAddress:contract.address},{fromBlock: 0, toBlock: 'latest'});
                         balanceChangedEvent.watch(handleBalanceChanged);
+
+                        deductionClaimedEvent = contract.DeductionClaimed({_contractAddress:contract.address},{fromBlock: 0, toBlock: 'latest'});
+                        deductionClaimedEvent.watch(handleDeductionClaimed);
                     }
                 });
         }
@@ -141,6 +148,44 @@ $(document).ready(function () {
         contract.terminateContract({from: senderAddress}, defaultCallbackHandler);
     }
 
+    function landlordClaimDeduction() {
+        console.log('landlord claiming deduction...');
+
+        if (isRopstenTestNet()) {
+            if (typeof web3 === 'undefined') {
+                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
+            }
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+        }
+        let landlordDeductionClaim = $('#landlord-deduction').val();
+        let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
+        let senderAddress = localStorage.getItem(KEY_LANDLORD_ADDRESS);
+
+        let contract = web3.eth.contract(tenancyContractABI).at(tenancyContractAddress);
+
+        contract.landlordClaimDeduction(landlordDeductionClaim, {from: senderAddress}, defaultCallbackHandler);
+    }
+
+    function tenantClaimDeduction() {
+        console.log('tenant claiming deduction...');
+
+        if (isRopstenTestNet()) {
+            if (typeof web3 === 'undefined') {
+                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
+            }
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+        }
+        let landlordDeductionClaim = $('#tenant-deduction').val();
+        let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
+        let senderAddress = localStorage.getItem(KEY_TENANT_ADDRESS);
+
+        let contract = web3.eth.contract(tenancyContractABI).at(tenancyContractAddress);
+
+        contract.tenantClaimDeduction(landlordDeductionClaim, {from: senderAddress}, defaultCallbackHandler);
+    }
+
     // TODO move this logic (state machine?) out in a separate module/file/package
     function handleStatusChanged(error, statusChangedEvent){
         if (error) {
@@ -148,7 +193,9 @@ $(document).ready(function () {
         } else {
             let oldContractStatusIndex = parseInt(""+localStorage.getItem(KEY_STATUS));
             let newStatusIndex = statusChangedEvent.args.statusIndex.c[0];
-            // TODO validate newStatusIndex
+            let senderAddress = statusChangedEvent.args._from;
+
+            // TODO validate values
 
             let newContractStatus = getStatus(newStatusIndex);
             let oldContractStatus = getStatus(oldContractStatusIndex);
@@ -240,12 +287,63 @@ $(document).ready(function () {
                             updateView(KEY_STATUS, newContractStatus);
 
                             // landlord ui controls
+                            enableElement('landlord-deduction');
                             disableElement('documentLandlordTerminateContract');
                             enableElement('documentLandlordClaimDeduction');
 
                             // tenant ui controls
+                            enableElement('tenant-deduction');
                             disableElement('documentTenantTerminateContract');
                             enableElement('documentTenantClaimDeduction');
+                            break;
+                        }
+                        default:
+                            console.error(errMsg);
+                    }
+                case 3: // Complete
+                    switch(newStatusIndex)
+                    {
+                        case 4: // Landlord or Tenant Claimed Deduction: Complete -> Deduction Claiming
+                        {
+                            console.log(logMsg);
+                            handleDeductionClaimingStatusChange(senderAddress, newStatusIndex);
+                            break;
+                        }
+                        default:
+                            console.error(errMsg);
+                    }
+                case 4: // Deduction Claiming
+                    switch(newStatusIndex)
+                    {
+                        case 4: // The Second Party Claimed Deduction: Deduction Claiming -> Deduction Claiming
+                        {
+                            console.log(logMsg);
+                            handleDeductionClaimingStatusChange(senderAddress, newStatusIndex);
+                            break;
+                        }
+                        case 5: // Both Parties Agreed on Deduction Value: Deduction Claiming -> Deduction Agreed
+                        {
+                            console.log(logMsg);
+
+                            handleDeductionClaimingStatusChange(senderAddress, newStatusIndex)
+
+                            let deductionValue = localStorage.getItem(KEY_LANDLORD_DEDUCTION_CLAIM);
+                            if (!deductionValue) {
+                                deductionValue = localStorage.getItem(KEY_TENANT_DEDUCTION_CLAIM);
+                            }
+
+                            // update model:
+                            localStorage.setItem(KEY_DEDUCTION, deductionValue);
+
+                            // update UI:
+                            updateView(KEY_DEDUCTION, deductionValue);
+
+                            // landlord ui controls
+                            enableElement('documentLandlordWithdrawDeduction');
+
+                            // tenant ui controls
+                            enableElement('documentTenantWithdrawDeposit');
+
                             break;
                         }
                         default:
@@ -254,6 +352,25 @@ $(document).ready(function () {
                 default:
                     console.error(errMsg);
             }
+        }
+    }
+
+    function handleDeductionClaimingStatusChange(senderAddress, newStatusIndex) {
+        // update model:
+        localStorage.setItem(KEY_STATUS, newStatusIndex);
+
+        // update UI:
+        updateView(KEY_STATUS, getStatus(newStatusIndex));
+
+        // landlord ui controls
+        if (senderAddress === localStorage.getItem(KEY_LANDLORD_ADDRESS)) {
+            disableElement('landlord-deduction');
+            disableElement('documentLandlordClaimDeduction');
+        }
+        // tenant ui controls
+        else if (senderAddress === localStorage.getItem(KEY_TENANT_ADDRESS)) {
+            disableElement('tenant-deduction');
+            disableElement('documentTenantClaimDeduction');
         }
     }
 
@@ -271,6 +388,32 @@ $(document).ready(function () {
 
             // update UI
             updateView(KEY_BALANCE, newBalanceValue);
+        }
+    }
+
+    function handleDeductionClaimed(error, deductionClaimedEvent){
+        if (error) {
+            console.error("Problem handling DeductionClaimed event: " + error);
+        } else {
+            let senderAddress = deductionClaimedEvent.args._from;
+            let deductionClaimValue = deductionClaimedEvent.args.claim.c[0];
+
+            // TODO validate new values
+
+            if (senderAddress === localStorage.getItem(KEY_LANDLORD_ADDRESS)) {
+
+                localStorage.setItem(KEY_LANDLORD_DEDUCTION_CLAIM, deductionClaimValue);
+
+                disableElement('landlord-deduction');
+                disableElement('documentLandlordClaimDeduction');
+            }
+            else if (senderAddress === localStorage.getItem(KEY_TENANT_ADDRESS)) {
+                disableElement('tenant-deduction');
+                localStorage.setItem(KEY_TENANT_DEDUCTION_CLAIM, deductionClaimValue);
+            } else if (senderAddress === localStorage.getItem(KEY_ARBITER_ADDRESS)) {
+                disableElement('arbiter-deduction');
+                localStorage.setItem(KEY_ARBITER_DEDUCTION_CLAIM, deductionClaimValue);
+            }
         }
     }
 
@@ -296,7 +439,7 @@ $(document).ready(function () {
         if(error) {
             console.error(error);
         } else {
-            console.log(result);
+            // console.log(result);
         }
     }
 
@@ -477,6 +620,10 @@ $(document).ready(function () {
     $('#documentLandlordTerminateContract').click(landlordTerminateContract);
 
     $('#documentTenantTerminateContract').click(tenantTerminateContract);
+
+    $('#documentLandlordClaimDeduction').click(landlordClaimDeduction);
+
+    $('#documentTenantClaimDeduction').click(tenantClaimDeduction);
 
     $('#documentResetTenancyDepositContract').click(resetTenancyDepositContractData);
 
