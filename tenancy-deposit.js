@@ -186,13 +186,32 @@ $(document).ready(function () {
         } else {
             web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
         }
-        let landlordDeductionClaim = $('#tenant-deduction').val();
+        let tenantDeductionClaim = $('#tenant-deduction').val();
         let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
         let senderAddress = localStorage.getItem(KEY_TENANT_ADDRESS);
 
         let contract = web3.eth.contract(tenancyContractABI).at(tenancyContractAddress);
 
-        contract.tenantClaimDeduction(landlordDeductionClaim, {from: senderAddress}, defaultCallbackHandler);
+        contract.tenantClaimDeduction(tenantDeductionClaim, {from: senderAddress}, defaultCallbackHandler);
+    }
+
+    function arbiterResolvesDispute() {
+        console.log('arbiter resolves dispute...');
+
+        if (isRopstenTestNet()) {
+            if (typeof web3 === 'undefined') {
+                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
+            }
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+        }
+        let deductionValue = $('#arbiter-deduction').val();
+        let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
+        let senderAddress = localStorage.getItem(KEY_ARBITER_ADDRESS);
+
+        let contract = web3.eth.contract(tenancyContractABI).at(tenancyContractAddress);
+
+        contract.resolveDispute(deductionValue, {from: senderAddress}, defaultCallbackHandler);
     }
 
     // TODO move this logic (state machine?) out in a separate module/file/package
@@ -353,6 +372,33 @@ $(document).ready(function () {
                             // arbiter ui controls
                             enableElement('arbiter-deduction');
                             enableElement('documentArbiterResolveDispute');
+
+                            break;
+                        }
+                        default:
+                            console.error(errMsg);
+                    }
+                case 6: // Dispute
+                    switch(newStatusIndex)
+                    {
+                        case 7: // Arbiter Resolves Dispute: Dispute -> Dispute Resolved
+                        {
+                            console.log(logMsg);
+                            // update model:
+                            localStorage.setItem(KEY_STATUS, newStatusIndex);
+
+                            // update UI:
+                            updateView(KEY_STATUS, newContractStatus);
+
+                            // landlord ui controls
+                            enableElement('documentLandlordWithdrawDeduction');
+
+                            // tenant ui controls
+                            enableElement('documentTenantWithdrawDeposit');
+
+                            // arbiter ui controls
+                            disableElement('arbiter-deduction');
+                            disableElement('documentArbiterResolveDispute');
 
                             break;
                         }
@@ -657,6 +703,8 @@ $(document).ready(function () {
     $('#documentLandlordClaimDeduction').click(landlordClaimDeduction);
 
     $('#documentTenantClaimDeduction').click(tenantClaimDeduction);
+
+    $('#documentArbiterResolveDispute').click(arbiterResolvesDispute);
 
     $('#documentResetTenancyDepositContract').click(resetTenancyDepositContractData);
 
