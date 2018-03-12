@@ -67,6 +67,7 @@ $(document).ready(function () {
             } else {
                 web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
             }
+
             let TenancyDepositContract = web3.eth.contract(tenancyContractABI);
             let tenancyDepositContractInstance = TenancyDepositContract.new(
                 tenantAddress,
@@ -116,13 +117,8 @@ $(document).ready(function () {
     function tenantSignContract() {
         console.log('tenant signs contract...');
 
-        if (isRopstenTestNet()) {
-            if (typeof web3 === 'undefined') {
-                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
-            }
-        } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-        }
+        configureWeb3Provider();
+
         let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
         let tenantAddress = localStorage.getItem(KEY_TENANT_ADDRESS);
         let deposit = localStorage.getItem(KEY_DEPOSIT);
@@ -143,13 +139,7 @@ $(document).ready(function () {
     function terminateContract(senderAddressKey) {
         console.log('terminating contract...');
 
-        if (isRopstenTestNet()) {
-            if (typeof web3 === 'undefined') {
-                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
-            }
-        } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-        }
+        configureWeb3Provider();
 
         let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
         let senderAddress = localStorage.getItem(senderAddressKey);
@@ -162,13 +152,8 @@ $(document).ready(function () {
     function landlordClaimDeduction() {
         console.log('landlord claiming deduction...');
 
-        if (isRopstenTestNet()) {
-            if (typeof web3 === 'undefined') {
-                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
-            }
-        } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-        }
+        configureWeb3Provider();
+
         let landlordDeductionClaim = $('#landlord-deduction').val();
         let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
         let senderAddress = localStorage.getItem(KEY_LANDLORD_ADDRESS);
@@ -181,13 +166,8 @@ $(document).ready(function () {
     function tenantClaimDeduction() {
         console.log('tenant claiming deduction...');
 
-        if (isRopstenTestNet()) {
-            if (typeof web3 === 'undefined') {
-                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
-            }
-        } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-        }
+        configureWeb3Provider();
+
         let tenantDeductionClaim = $('#tenant-deduction').val();
         let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
         let senderAddress = localStorage.getItem(KEY_TENANT_ADDRESS);
@@ -200,13 +180,8 @@ $(document).ready(function () {
     function arbiterResolvesDispute() {
         console.log('arbiter resolves dispute...');
 
-        if (isRopstenTestNet()) {
-            if (typeof web3 === 'undefined') {
-                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
-            }
-        } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-        }
+        configureWeb3Provider();
+
         let deductionValue = $('#arbiter-deduction').val();
         let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
         let senderAddress = localStorage.getItem(KEY_ARBITER_ADDRESS);
@@ -219,13 +194,8 @@ $(document).ready(function () {
     function withdrawTenantDeposit() {
         console.log('tenant withdraws deposit...');
 
-        if (isRopstenTestNet()) {
-            if (typeof web3 === 'undefined') {
-                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
-            }
-        } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-        }
+        configureWeb3Provider();
+
         let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
         let senderAddress = localStorage.getItem(KEY_TENANT_ADDRESS);
 
@@ -237,13 +207,8 @@ $(document).ready(function () {
     function withdrawLandlordClaim() {
         console.log('landlord withdraws deduction...');
 
-        if (isRopstenTestNet()) {
-            if (typeof web3 === 'undefined') {
-                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
-            }
-        } else {
-            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
-        }
+        configureWeb3Provider();
+
         let tenancyContractAddress = localStorage.getItem(KEY_CONTRACT_ADDRESS);
         let senderAddress = localStorage.getItem(KEY_LANDLORD_ADDRESS);
 
@@ -609,6 +574,16 @@ $(document).ready(function () {
     $('#documentResetTenancyDepositContract').click(resetTenancyDepositContractData);
 
     // --- Helper Functions ---
+
+    function configureWeb3Provider() {
+        if (isRopstenTestNet) {
+            if (typeof web3 === 'undefined') {
+                return showError("Please install MetaMask to access the Ethereum Web3 API from your web browser");
+            }
+        } else {
+            web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'));
+        }
+    }
 
     function getStatus(statusIndex) {
         const ContractStatus = [
