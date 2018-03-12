@@ -1,0 +1,13 @@
+------
+Ganache
+
+landlord:	0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1
+tenant:		0xffcf8fdee72ac11b5c542428b35eef5769c409f0
+arbiter:	0x22d491bde2303f2f43325b2108d26f1eaba1e32b
+
+------
+Ropsten
+
+landlord:	0xC32B4EbEa0B17e6aF9A868E629A62430aA491eB5
+tenant: 	0x6E502f2Aad745BcfAF8b8F7033f777d23Fed68d0
+arbiter:	0xE56bE9b076f861f92CaCe19219073EddD44Bd5D2

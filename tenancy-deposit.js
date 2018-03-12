@@ -277,13 +277,7 @@ $(document).ready(function () {
                     switch (newStatusIndex) {
                         case 0: // Booting Up: N/A -> Not Signed
                         {
-                            // TODO optimise
-                            console.log(logMsg);
-
-                            // update model:
-                            localStorage.setItem(KEY_STATUS, newStatusIndex);
-
-                            updateView(KEY_STATUS, newContractStatus);
+                            updateStatus(newStatusIndex, logMsg);
                         }
                         default:
                             ignoreStatusChange(errMsg);
@@ -293,18 +287,13 @@ $(document).ready(function () {
                     switch (newStatusIndex) {
                         case 1: // Contract Created: Not Signed -> Deposit Required
                         {
-                            // TODO optimise
-                            console.log(logMsg);
-
-                            // update model:
-                            localStorage.setItem(KEY_STATUS, newStatusIndex);
+                            updateStatus(newStatusIndex, logMsg);
 
                             // update UI:
                             updateView(KEY_LANDLORD_ADDRESS, localStorage.getItem(KEY_LANDLORD_ADDRESS));
                             updateView(KEY_TENANT_ADDRESS, localStorage.getItem(KEY_TENANT_ADDRESS));
                             updateView(KEY_ARBITER_ADDRESS, localStorage.getItem(KEY_ARBITER_ADDRESS));
                             updateView(KEY_DEPOSIT, localStorage.getItem(KEY_DEPOSIT));
-                            updateView(KEY_STATUS, newContractStatus);
 
                             disableElement('contract-landlordAddress');
                             disableElement('contract-tenantAddress');
@@ -326,13 +315,9 @@ $(document).ready(function () {
                     {
                         case 2: // Tenants Signs Contract: Deposit Required -> Active
                         {
-                            // TODO optimise
-                            console.log(logMsg);
-                            // update model:
-                            localStorage.setItem(KEY_STATUS, newStatusIndex);
+                            updateStatus(newStatusIndex, logMsg);
 
                             // update UI:
-                            updateView(KEY_STATUS, newContractStatus);
 
                             // landlord ui controls
                             enableElement('documentLandlordTerminateContract');
@@ -350,13 +335,9 @@ $(document).ready(function () {
                     {
                         case 3: // Contract Comes to an End: Active -> Complete
                         {
-                            // TODO optimise
-                            console.log(logMsg);
-                            // update model:
-                            localStorage.setItem(KEY_STATUS, newStatusIndex);
+                            updateStatus(newStatusIndex, logMsg);
 
                             // update UI:
-                            updateView(KEY_STATUS, newContractStatus);
 
                             // landlord ui controls
                             enableElement('landlord-deduction');
@@ -432,13 +413,9 @@ $(document).ready(function () {
                     {
                         case 7: // Arbiter Resolves Dispute: Dispute -> Dispute Resolved
                         {
-                            // TODO optimise
-                            console.log(logMsg);
-                            // update model:
-                            localStorage.setItem(KEY_STATUS, newStatusIndex);
+                            updateStatus(newStatusIndex, logMsg);
 
                             // update UI:
-                            updateView(KEY_STATUS, newContractStatus);
 
                             // landlord ui controls
                             enableElement('documentLandlordWithdrawDeduction');
@@ -484,14 +461,9 @@ $(document).ready(function () {
     }
 
     function handleDeductionClaimingStatusChange(senderAddress, newStatusIndex, logMsg) {
-        // TODO optimise
-        console.log(logMsg);
-
-        // update model:
-        localStorage.setItem(KEY_STATUS, newStatusIndex);
+        updateStatus(newStatusIndex, logMsg);
 
         // update UI:
-        updateView(KEY_STATUS, getStatus(newStatusIndex));
 
         // landlord ui controls
         if (senderAddress.toLowerCase() === (localStorage.getItem(KEY_LANDLORD_ADDRESS).toLowerCase())) {
