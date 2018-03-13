@@ -6,7 +6,7 @@ A web client which deploys and interacts with a Solidity smart contract to the E
 In order to run/test the client locally you would need to:
 1. Launch [Ganache](http://truffleframework.com/ganache/) in your command line:
 ```
-> ganache-cli -d
+$ ganache-cli -d
 ```
 2. Then open `index.html` in your browser but when creating a tenancy deposit agreement in the `Contract Details` tab, you should leave the `Ropsten Test Net` option _unticked_.  
 
